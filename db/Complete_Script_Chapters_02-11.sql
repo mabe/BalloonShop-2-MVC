@@ -1653,3 +1653,111 @@ WHERE ProductID IN
    )
 
 GO
+
+CREATE TABLE ShippingRegion(
+	ShippingRegionID INT IDENTITY(1,1) NOT NULL,
+	ShippingRegion NVARCHAR(100) NULL,
+ CONSTRAINT PK_ShippingRegion_1 PRIMARY KEY CLUSTERED (ShippingRegionID ASC)
+)
+
+GO
+
+INSERT INTO ShippingRegion (ShippingRegion)
+VALUES ('Please Select'),
+	   ('US / Canada'),
+	   ('Europe'),
+	   ('Rest of World')
+	   
+GO
+
+CREATE TABLE [dbo].[Account](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Email] [varchar](255) NOT NULL,
+	[Password] [varchar](255) NOT NULL,
+	[Address1] [varchar](255) NULL,
+	[Address2] [varchar](255) NULL,
+	[City] [varchar](255) NULL,
+	[Country] [varchar](255) NULL,
+	[PostalCode] [varchar](255) NULL,
+	[Region] [varchar](255) NULL,
+	[DaytimePhone] [varchar](255) NULL,
+	[EveningPhone] [varchar](255) NULL,
+	[MobilePhone] [varchar](255) NULL,
+	[CreditCard] [varchar](255) NULL,
+	[ShippingRegion] [int] NULL,
+ CONSTRAINT [PK_Account] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+CREATE TABLE Shipping (
+  ShippingID INT NOT NULL PRIMARY KEY,
+  ShippingType VARCHAR(100) NOT NULL,
+  ShippingCost MONEY NOT NULL,
+  ShippingRegionID INT
+) 
+
+GO
+
+INSERT INTO Shipping (ShippingID, ShippingType, ShippingCost, ShippingRegionID) 
+VALUES (1, 'Next Day Delivery ($20)', 20, 2),
+       (2, '3-4 Days ($10)', 10, 2),
+       (3, '7 Days ($5)', 5, 2),
+       (4, 'By Air (7 Days, $25)', 25, 3),
+       (5, 'By Sea (28 days, $10)', 10, 3),
+       (6, 'By Air (10 days, $35)', 35, 4),
+       (7, 'By Sea (38 days, $30)', 30, 4)
+
+GO
+
+CREATE TABLE Tax (
+  TaxID INT NOT NULL PRIMARY KEY,
+  TaxType VARCHAR(100) NOT NULL,
+  TaxPercentage FLOAT NOT NULL
+) 
+
+
+GO
+
+INSERT INTO TAX (TaxID, TaxType, TaxPercentage) 
+VALUES (1, 'Sales Tax at 8.5%', 8.5), 
+       (2, 'No Tax', 0)
+
+GO
+
+
+ALTER TABLE Orders ADD TaxID INT;
+ALTER TABLE Orders ADD ShippingID INT;
+
+ALTER TABLE Orders ADD CONSTRAINT FK_Orders_Tax 
+FOREIGN KEY(TaxID) REFERENCES Tax (TaxID)
+
+ALTER TABLE Orders ADD CONSTRAINT FK_Orders_Shipping 
+FOREIGN KEY(ShippingID) REFERENCES Shipping (ShippingID)
+
+GO
+
+ALTER TABLE Orders ADD CustomerID UNIQUEIDENTIFIER;
+ALTER TABLE Orders ADD Status     INT DEFAULT 0;
+ALTER TABLE Orders ADD AuthCode   VARCHAR(50);
+ALTER TABLE Orders ADD Reference  VARCHAR(50);
+
+GO
+
+CREATE TABLE Audit (
+  AuditID INT NOT NULL PRIMARY KEY,
+  OrderID INT NOT NULL,
+  DateStamp DATETIME NOT NULL,
+  Message NVARCHAR(512),
+  MessageNumber INT
+) 
+
+GO
+
+ALTER TABLE Audit ADD CONSTRAINT FK_Audit_Orders 
+FOREIGN KEY(OrderID) REFERENCES Orders (OrderID)
+
+GO
